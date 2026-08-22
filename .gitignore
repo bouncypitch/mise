@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Per-frame image dumps used only to compile the demo videos in media/ --
+# large (60MB+) and fully reproducible by re-running the sim.
+checkpoints/video_frames/
+checkpoints/video_frames_clean/
+checkpoints/video_frames_failures/
+checkpoints/demo_frames/
+
+# Runtime output, regenerated on every run
+checkpoints/state_checkpoint.json
+checkpoints/scene_test.jpg

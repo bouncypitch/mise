@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mise — Long-Horizon Physical Agent</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #0b0f14; color: #dbe4ee;
+    font-family: -apple-system, "SF Mono", "Menlo", monospace;
+    display: flex; height: 100vh; overflow: hidden;
+  }
+  .left { flex: 0 0 60%; display: flex; align-items: center; justify-content: center; background: #05070a; position: relative; }
+  .left img { max-width: 100%; max-height: 100%; }
+  .tier-badge {
+    position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.6);
+    border: 1px solid #2a3542; border-radius: 6px; padding: 6px 10px; font-size: 11px; color: #7fd4ff;
+  }
+  .right { flex: 1; padding: 18px 22px; overflow-y: auto; }
+  h1 { font-size: 15px; letter-spacing: 2px; color: #7fd4ff; margin: 0 0 2px 0; text-transform: uppercase; }
+  .goal { font-size: 20px; margin: 0 0 18px 0; color: #fff; font-weight: 600; }
+  .section { margin-bottom: 16px; border: 1px solid #1c2733; border-radius: 8px; padding: 12px 14px; background: #0f1620; }
+  .section h2 { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #8fa3b8; margin: 0 0 8px 0; }
+  .checklist div { padding: 3px 0; font-size: 14px; }
+  .ok { color: #57d68d; } .pending { color: #556377; } .current { color: #ffd166; font-weight: 600; }
+  .current-action { font-size: 16px; color: #fff; }
+  .verify-line { font-size: 13px; margin: 3px 0; }
+  .verify-pass { color: #57d68d; } .verify-fail { color: #ff6b6b; }
+  .status-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 13px; }
+  .status-INITIALIZING { background: #2a3542; color: #8fa3b8; }
+  .status-RUNNING { background: #1a3a2e; color: #57d68d; }
+  .status-EXECUTION_FAILURE { background: #3a1a1a; color: #ff6b6b; }
+  .status-REPLANNING { background: #3a3418; color: #ffd166; }
+  .status-VERIFIED { background: #16452f; color: #6bffb0; }
+  .replan-note { font-size: 13px; color: #ffd166; }
+  .log { font-size: 12px; max-height: 220px; overflow-y: auto; }
+  .log div { padding: 2px 0; color: #8fa3b8; border-bottom: 1px solid #131b24; }
+  .log .t { color: #4a5a6c; margin-right: 8px; }
+  .stats { display: flex; gap: 18px; font-size: 13px; }
+  .stats div span { display: block; color: #8fa3b8; font-size: 10px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="tier-badge">TIER H1 (H2-flavored: checkpointed world model)</div>
+    <img id="frame" src="" alt="sim view">
+  </div>
+  <div class="right">
+    <h1>Mise — Mission</h1>
+    <div class="goal" id="goal">—</div>
+
+    <div class="section">
+      <h2>Checklist</h2>
+      <div class="checklist" id="checklist"></div>
+    </div>
+
+    <div class="section">
+      <h2>Current Action</h2>
+      <div class="current-action" id="current-action">—</div>
+    </div>
+
+    <div class="section">
+      <h2>Mid-Run Verification</h2>
+      <div id="verification">—</div>
+    </div>
+
+    <div class="section">
+      <h2>Status</h2>
+      <span class="status-badge status-INITIALIZING" id="status-badge">—</span>
+      <div class="replan-note" id="replan-note"></div>
+    </div>
+
+    <div class="section">
+      <h2>Outcome</h2>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="section">
+      <h2>Event Log</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+<script>
+async function pollFrame() {
+  try {
+    const r = await fetch('/api/frame');
+    const d = await r.json();
+    if (d.frame_b64) document.getElementById('frame').src = 'data:image/jpeg;base64,' + d.frame_b64;
+  } catch (e) {}
+}
+
+async function pollState() {
+  try {
+    const r = await fetch('/api/state');
+    const d = await r.json();
+    const s = d.state;
+    if (!s) return;
+
+    document.getElementById('goal').textContent = s.mission_goal || '—';
+
+    const checklist = document.getElementById('checklist');
+    checklist.innerHTML = '';
+    Object.entries(s.objects).forEach(([name, o]) => {
+      const div = document.createElement('div');
+      const mark = o.status === 'kitted' ? '✓' : (name === (d.current_action||'').split(' ').pop() ? '→' : '○');
+      div.className = o.status === 'kitted' ? 'ok' : 'pending';
+      div.textContent = `${mark} ${name}`;
+      checklist.appendChild(div);
+    });
+
+    document.getElementById('current-action').textContent = d.current_action || '—';
+
+    const v = d.last_verification;
+    const vDiv = document.getElementById('verification');
+    if (v) {
+      vDiv.innerHTML = `
+        <div class="verify-line">Expected: ${v.object} → ${v.expected.location}</div>
+        <div class="verify-line ${v.success ? 'verify-pass' : 'verify-fail'}">Observed: ${v.object} → ${v.observed.location} ${v.success ? '(PASS)' : '(' + v.failure_type + ')'}</div>
+      `;
+    }
+
+    const badge = document.getElementById('status-badge');
+    badge.textContent = d.status;
+    badge.className = 'status-badge status-' + d.status;
+
+    const replanDiv = document.getElementById('replan-note');
+    if (s.plan_history && s.plan_history.length > 1) {
+      replanDiv.textContent = 'Latest plan: ' + s.plan_history[s.plan_history.length - 1].note;
+    } else {
+      replanDiv.textContent = '';
+    }
+
+    const kitted = Object.values(s.objects).filter(o => o.status === 'kitted').length;
+    const total = Object.keys(s.objects).length;
+    const hazard = s.actions_taken ? (s.failed_attempts / s.actions_taken).toFixed(3) : '0.000';
+    document.getElementById('stats').innerHTML = `
+      <div><span>Kitted</span>${kitted}/${total}</div>
+      <div><span>Actions</span>${s.actions_taken}</div>
+      <div><span>Failures</span>${s.failed_attempts}</div>
+      <div><span>Replans</span>${s.replans}</div>
+      <div><span>Hazard Rate</span>${hazard}</div>
+    `;
+
+    const log = document.getElementById('log');
+    log.innerHTML = '';
+    (s.event_log || []).slice(-40).reverse().forEach(e => {
+      const div = document.createElement('div');
+      div.innerHTML = `<span class="t">[${e.t}]</span>${e.msg}`;
+      log.appendChild(div);
+    });
+  } catch (e) {}
+}
+
+setInterval(pollFrame, 300);
+setInterval(pollState, 300);
+pollFrame(); pollState();
+</script>
+</body>
+</html>

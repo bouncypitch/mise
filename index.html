@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mise — A Long-Horizon Physical Agent</title>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --ink: #1A1A1A;
+    --muted: #68666B;
+    --pink: #FF00BF;
+    --line: #E8E6EA;
+    --green: #1E874B;
+    --card-bg: #FAFAFB;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 0 0 14px 0;
+  }
+  h1, h2 { margin: 0; font-weight: 800; letter-spacing: -0.02em; }
+  h1 { font-size: clamp(48px, 9vw, 96px); }
+  h2 { font-size: clamp(28px, 4.5vw, 42px); margin-bottom: 28px; }
+  p { color: var(--muted); font-size: 16px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 28px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  header.top .wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 14px; padding-bottom: 14px; max-width: 1080px;
+  }
+  .wordmark { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
+  header.top a.repo {
+    color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600;
+    border: 1px solid var(--line); border-radius: 20px; padding: 7px 16px;
+  }
+  header.top a.repo:hover { border-color: var(--pink); color: var(--pink); }
+
+  section { padding: 96px 0; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: none; }
+
+  .hero { padding-top: 72px; text-align: left; }
+  .hero .sub {
+    font-size: 16px; font-weight: 700; letter-spacing: 1px; color: var(--pink);
+    text-transform: uppercase; margin: 20px 0 40px 0;
+  }
+  .hero img {
+    width: 100%; max-height: 460px; object-fit: contain;
+    border-radius: 16px; border: 1px solid var(--line); background: var(--card-bg);
+  }
+  .takeaway {
+    font-size: 19px; color: var(--ink); font-weight: 500;
+    margin-top: 36px; max-width: 720px;
+  }
+  .takeaway.quote { font-style: italic; }
+  .takeaway.center { text-align: center; margin-left: auto; margin-right: auto; }
+
+  section img.feature {
+    width: 100%; max-height: 380px; object-fit: contain;
+    border-radius: 16px; border: 1px solid var(--line); background: var(--card-bg);
+    margin-top: 8px;
+  }
+
+  .flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+  .flow .box {
+    border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; font-weight: 700; font-size: 14px; color: var(--muted);
+    text-align: center; flex: 1 1 120px;
+  }
+  .flow .box.hi {
+    background: var(--pink); border-color: var(--pink); color: #fff;
+    position: relative;
+  }
+  .flow .arrow { color: var(--line); font-weight: 700; font-size: 18px; flex: 0 0 auto; }
+  .flow.pink .box { border-color: var(--pink); color: var(--pink); }
+  .hi-caption {
+    text-align: center; font-size: 11px; letter-spacing: 1px; font-weight: 700;
+    color: var(--pink); text-transform: uppercase; margin-top: 10px;
+  }
+  .on-fail {
+    font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--pink); margin: 18px 0 10px 0;
+  }
+  .thresh {
+    font-family: "SF Mono", Menlo, monospace; font-size: 14px; color: var(--pink);
+    text-align: center; margin: 22px 0;
+  }
+  .body-copy { max-width: 760px; margin: 22px 0; }
+  .body-copy p { font-size: 15px; }
+
+  .stat-line {
+    font-family: "SF Mono", Menlo, monospace; font-weight: 700; font-size: 16px;
+    margin-top: 8px;
+  }
+  .stat-line.green { color: var(--green); }
+  .stat-line.pink { color: var(--pink); }
+  video.demo {
+    width: 100%; margin-top: 28px; border-radius: 16px;
+    border: 1.5px solid var(--pink); background: #000;
+  }
+
+  .cards { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
+  .card {
+    flex: 1 1 200px; border: 1px solid var(--line); border-radius: 14px;
+    padding: 32px 20px; text-align: center; background: var(--card-bg);
+  }
+  .card .big { font-size: 40px; font-weight: 800; }
+  .card .sub { font-family: "SF Mono", Menlo, monospace; font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  .pairs { margin-top: 12px; }
+  .pair { display: flex; align-items: baseline; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .pair:first-child { border-top: none; }
+  .pair .p1 { font-weight: 700; flex: 1 1 260px; }
+  .pair .arrow { color: var(--pink); font-weight: 700; }
+  .pair .p2 { color: var(--muted); flex: 2 1 300px; }
+
+  .checklist { margin-top: 12px; }
+  .check-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--line); font-weight: 600; }
+  .check-item:first-child { border-top: none; }
+  .check-item .tick { color: var(--pink); font-weight: 800; }
+
+  footer { padding: 56px 0; text-align: center; }
+  footer p { font-size: 13px; }
+  footer a { color: var(--pink); text-decoration: none; font-weight: 600; }
+
+  @media (max-width: 640px) {
+    section { padding: 64px 0; }
+    .flow { flex-direction: column; align-items: stretch; }
+    .flow .arrow { transform: rotate(90deg); text-align: center; }
+    .cards { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="wordmark">MISE</div>
+    <a class="repo" href="https://github.com/bouncypitch/mise" target="_blank" rel="noopener">View on GitHub →</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">AGI House Hackathon — Long-Horizon Agents</p>
+    <h1>MISE</h1>
+    <p class="sub">A long-horizon physical agent</p>
+    <img src="checkpoints/generated_images/curry_hero.jpeg" alt="Target dish: low-carb Thai green curry">
+    <p class="takeaway">Tell it what to cook. It plans, executes, and recovers when things go wrong.</p>
+  </div>
+</section>
+
+<section id="vision">
+  <div class="wrap">
+    <p class="eyebrow">The Bigger Vision</p>
+    <h2>From voice to plate</h2>
+    <div class="flow">
+      <div class="box">VOICE</div><div class="arrow">→</div>
+      <div class="box">DECOMPOSE</div><div class="arrow">→</div>
+      <div class="box">RETRIEVE</div><div class="arrow">→</div>
+      <div class="box hi">KIT</div><div class="arrow">→</div>
+      <div class="box">PREP</div><div class="arrow">→</div>
+      <div class="box">COOK</div>
+    </div>
+    <div class="hi-caption">↑ This hackathon</div>
+    <div class="body-copy">
+      <p>A voice request is decomposed into an ingredient list, a robot retrieves each raw ingredient, kits them into a tray, then cuts and preps them so they're ready to cook.</p>
+    </div>
+    <p class="takeaway">Kitting is a repeatable task across industries — meal kits, hospitals, warehouses. We built that one piece, well.</p>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="wrap">
+    <p class="eyebrow">The Problem</p>
+    <h2>Agents fail silently</h2>
+    <img class="feature" src="checkpoints/generated_images/robot_ingredients.jpeg" alt="The mission: kit every raw ingredient into the tray">
+    <p class="takeaway quote">"An agent that succeeds 99% of the time still fails a 100-step task more often than not."</p>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="wrap">
+    <p class="eyebrow">Architecture</p>
+    <h2>How it thinks</h2>
+    <div class="flow">
+      <div class="box">GOAL</div><div class="arrow">→</div>
+      <div class="box">PLAN</div><div class="arrow">→</div>
+      <div class="box">ACT</div><div class="arrow">→</div>
+      <div class="box">OBSERVE</div><div class="arrow">→</div>
+      <div class="box">VERIFY</div>
+    </div>
+    <p class="on-fail">on fail</p>
+    <div class="flow pink">
+      <div class="box">DIAGNOSE</div><div class="arrow">→</div>
+      <div class="box">REPLAN</div><div class="arrow">→</div>
+      <div class="box">ACT AGAIN</div>
+    </div>
+    <div class="body-copy">
+      <p>Hard boundary: the LLM only interprets goals, diagnoses failures, and replans — named parameters, never joint angles. IK, motion, grasp, and verification are deterministic Python, the same code path every run.</p>
+    </div>
+    <p class="takeaway">The LLM never touches a trajectory. Physics is run by code, not a model.</p>
+  </div>
+</section>
+
+<section id="recognize">
+  <div class="wrap">
+    <p class="eyebrow">Mid-Run Verification</p>
+    <h2>How does it recognize failure</h2>
+    <div class="flow">
+      <div class="box">GRIPPER CHECK</div><div class="arrow">→</div>
+      <div class="box">LIFT CHECK</div><div class="arrow">→</div>
+      <div class="box">VERIFIED</div>
+    </div>
+    <p class="thresh">dist(gripper, object) &lt; 0.06m &nbsp;AND&nbsp; object height &gt; table + 0.05m</p>
+    <div class="body-copy">
+      <p>verifier.py is deterministic, zero LLM involvement. It independently re-derives success from observed physics — never from what the controller claims happened.</p>
+      <p>Every result is checked against the world model — the checkpointed record of what should be true for each object. A mismatch is logged as expected vs. observed and written to disk immediately.</p>
+    </div>
+    <p class="takeaway">The seeded failure closes the gripper on empty air — caught from geometry alone.</p>
+  </div>
+</section>
+
+<section id="recover">
+  <div class="wrap">
+    <p class="eyebrow">Failure Recovery</p>
+    <h2>How does it recover</h2>
+    <div class="flow">
+      <div class="box">DIAGNOSE DRIFT</div><div class="arrow">→</div>
+      <div class="box">PICK NEW STRATEGY</div><div class="arrow">→</div>
+      <div class="box">REPLAN</div><div class="arrow">→</div>
+      <div class="box">ACT AGAIN</div>
+    </div>
+    <div class="body-copy">
+      <p>Example: a missed grasp on basil is classified as behavioral drift — right object, right timing, wrong execution. The planner swaps in a genuinely different strategy — a lower, rotated side-grasp — not a blind retry of the same motion.</p>
+    </div>
+    <p class="takeaway">Recovery is a different strategy, not the same action repeated.</p>
+  </div>
+</section>
+
+<section id="demo-clean">
+  <div class="wrap">
+    <p class="eyebrow">Demo — Clean Run</p>
+    <h2>Clean run</h2>
+    <p class="stat-line green">5 of 5 ingredients kitted. Zero failures.</p>
+    <video class="demo" controls preload="metadata" poster="checkpoints/generated_images/poster_clean.jpg">
+      <source src="media/mise_demo_clean.mp4" type="video/mp4">
+    </video>
+  </div>
+</section>
+
+<section id="demo-stress">
+  <div class="wrap">
+    <p class="eyebrow">Demo — Stress Test</p>
+    <h2>Stress test</h2>
+    <p class="stat-line pink">5 injected failures. 5 of 5 still kitted.</p>
+    <video class="demo" controls preload="metadata" poster="checkpoints/generated_images/poster_stress.jpg">
+      <source src="media/mise_demo_failures.mp4" type="video/mp4">
+    </video>
+  </div>
+</section>
+
+<section id="performance">
+  <div class="wrap">
+    <p class="eyebrow">Performance</p>
+    <h2>Failure count doesn't matter</h2>
+    <div class="cards">
+      <div class="card"><div class="big">5/5</div><div class="sub">0 FAILURES · HAZARD 0.0</div></div>
+      <div class="card"><div class="big">5/5</div><div class="sub">1 FAILURE · HAZARD 0.09</div></div>
+      <div class="card"><div class="big">5/5</div><div class="sub">5 FAILURES · HAZARD 0.33</div></div>
+    </div>
+    <p class="takeaway">Every seeded failure is diagnosed, replanned, and recovered — before the mission derails.</p>
+  </div>
+</section>
+
+<section id="reliability">
+  <div class="wrap">
+    <p class="eyebrow">Reliability Engineering</p>
+    <h2>Built on real bugs</h2>
+    <div class="pairs">
+      <div class="pair"><div class="p1">Base collided with table</div><div class="arrow">→</div><div class="p2">repositioned + safe start pose</div></div>
+      <div class="pair"><div class="p1">IK never reached target</div><div class="arrow">→</div><div class="p2">stronger gains + held waypoints</div></div>
+      <div class="pair"><div class="p1">"Success" still dragged objects</div><div class="arrow">→</div><div class="p2">fixed true gripper opening</div></div>
+    </div>
+    <p class="takeaway">Every fix was diagnosed from contact-force and joint-state telemetry — not guessed.</p>
+  </div>
+</section>
+
+<section id="judging">
+  <div class="wrap">
+    <p class="eyebrow">Judging Criteria</p>
+    <h2>Every criterion, demonstrated</h2>
+    <div class="checklist">
+      <div class="check-item"><span class="tick">✓</span> Mid-run verification</div>
+      <div class="check-item"><span class="tick">✓</span> Drift detection</div>
+      <div class="check-item"><span class="tick">✓</span> Hazard rate tracking</div>
+      <div class="check-item"><span class="tick">✓</span> Checkpointed world state</div>
+      <div class="check-item"><span class="tick">✓</span> Three-level evaluation</div>
+      <div class="check-item"><span class="tick">✓</span> Reliability over horizon length</div>
+    </div>
+    <p class="takeaway">Not bolted on for the demo — built into the architecture.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Run it yourself: <code>python main.py</code> — dashboard at <code>localhost:5050</code></p>
+    <p><a href="https://github.com/bouncypitch/mise" target="_blank" rel="noopener">github.com/bouncypitch/mise</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

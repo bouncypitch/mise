@@ -3,6 +3,7 @@
 **A long-horizon physical agent.** Tell it what to cook. It plans the mission, kits the ingredients with a robot arm — and when something physically goes wrong mid-run, it notices, diagnoses, and recovers.
 
 Built for the **AGI House Hackathon — Long-Horizon Agents**.
+**[Live demo page →](https://bouncypitch.github.io/mise/)**
 
 <img src="checkpoints/generated_images/curry_hero.jpeg" alt="Target dish: low-carb Thai green curry" width="100%">
 
@@ -25,10 +26,10 @@ This is **not** "an LLM controls a robot." The LLM never touches trajectories, j
 
 | Clean run | Stress test |
 |---|---|
-| <video src="media/mise_demo_clean.mp4" controls width="100%"></video> | <video src="media/mise_demo_failures.mp4" controls width="100%"></video> |
+| [![Clean run](checkpoints/generated_images/clean_run.gif)](media/mise_demo_clean.mp4) | [![Stress test](checkpoints/generated_images/stress_test.gif)](media/mise_demo_failures.mp4) |
 | 5/5 kitted · 0 failures · hazard rate 0.0 | 5/5 kitted despite 5 injected failures · hazard rate 0.333 |
 
-*(GitHub renders these inline — if they don't load, grab them directly from [`media/`](media/).)*
+GIF previews above (click either to download the full-quality `.mp4`) — or watch both with audio-free native playback on the **[live demo page](https://bouncypitch.github.io/mise/)**.
 
 ## How it thinks
 

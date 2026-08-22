@@ -17,6 +17,10 @@ Most agent demos only show the happy path — one clean trajectory, no visible r
 
 This is **not** "an LLM controls a robot." The LLM never touches trajectories, joint angles, or PyBullet calls — it only interprets goals, diagnoses failures, and replans.
 
+<img src="checkpoints/generated_images/robot_ingredients.jpeg" alt="The mission: kit every raw ingredient into the tray" width="100%">
+
+*The mission — kit every raw ingredient into the tray.*
+
 ## Demo
 
 | Clean run | Stress test |
